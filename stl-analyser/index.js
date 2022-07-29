@@ -20,7 +20,9 @@ function executeCmd (cmd){
     });
 
 }
-
+/* 
+* initCmd function generate shel command by fetching data from agrv
+*/
 function initCmd(){
 
     let cmdArgs = {
@@ -30,7 +32,6 @@ function initCmd(){
         fillDensity: "",
         fileName: ""
     }
-
     if(typeof process.argv[2] === 'undefined')console.log("no file please add stl file")
     else{
     process.argv.forEach((val, index) => {
@@ -53,11 +54,9 @@ function initCmd(){
             }
         }
       });
-      console.log(Object.values(cmdArgs));
     }
-    console.log(`prusa-slicer --export-gcode tmp/${cmdArgs.fileName}.stl --load ./config/config-files/print-settings/${cmdArgs.printSettings}.ini --load ./config/config-files/filament-type/${cmdArgs.filamentType}.ini --load ./config/config-files/printer-type/${cmdArgs.printerType}.ini --fill-density ${cmdArgs.fillDensity} --output export-gcodes/${cmdArgs.fileName}.gcode`);
-    return console.log("end");
+   
+    return `prusa-slicer --export-gcode tmp/${cmdArgs.fileName}.stl --load ./config/config-files/print-settings/${cmdArgs.printSettings}.ini --load ./config/config-files/filament-type/${cmdArgs.filamentType}.ini --load ./config/config-files/printer-type/${cmdArgs.printerType}.ini --fill-density ${cmdArgs.fillDensity} --output export-gcodes/${cmdArgs.fileName}.gcode`;
 }
 // cmd: `prusa-slicer --export-gcode tmp/${stlFile} --load <print-settings> --load <filament-type> --load <printer-type> --fill-density <fill-density> --output export-gcodes/<output-name>.gocode` 
-console.log(initCmd());
-executeCmd("ls -al");
+executeCmd(initCmd());
