@@ -1,5 +1,7 @@
 const { exec } = require("child_process");
 const fs = require('fs');
+var logger = require("logger").createLogger('../logs.log');
+
 
 // init printing param with default value
 const cmdArgs = {
@@ -25,7 +27,6 @@ function executeCmd (cmd){
                 reject(error);
                 return;
             }
-            console.log(`stdout: ${stdout}`);
             resolve(stdout);
         });
     })
@@ -35,7 +36,7 @@ function executeCmd (cmd){
 */
 function initCmd(){
 
-
+    let cmd = "";
 
     // check if stl file is specified
     if(typeof process.argv[2] === 'undefined')console.log("no file please add stl file")
@@ -65,9 +66,9 @@ function initCmd(){
         }
       });
     }
-
-
-    return `prusa-slicer --export-gcode tmp/${cmdArgs.fileName}.stl --load ./config/config-files/print-settings/${cmdArgs.printSettings}.ini --load ./config/config-files/filament-type/${cmdArgs.filamentType}.ini --load ./config/config-files/printer-type/${cmdArgs.printerType}.ini --fill-density ${cmdArgs.fillDensity} --scale ${cmdArgs.scalePercent} --output export-gcodes/${cmdArgs.fileName}.gcode`;
+    cmd = `prusa-slicer --export-gcode tmp/${cmdArgs.fileName}.stl --load ./config/config-files/print-settings/${cmdArgs.printSettings}.ini --load ./config/config-files/filament-type/${cmdArgs.filamentType}.ini --load ./config/config-files/printer-type/${cmdArgs.printerType}.ini --fill-density ${cmdArgs.fillDensity} --scale ${cmdArgs.scalePercent} --output export-gcodes/${cmdArgs.fileName}.gcode`;
+    logger.info("STL-ANALYSER - initCmd - new command initalized with param - ", `print-settings: ${cmdArgs.printSettings}, filament: ${cmdArgs.filamentType}, density: ${cmdArgs.fillDensity}, scale: ${cmdArgs.scalePercent}`);
+    return cmd;
 }
 /*
 * returnInformations return needed informations about the desired Gcode in the *export-gcodes" directory
@@ -99,6 +100,7 @@ function returnInformations(gcodeFileName){
                 if(line.search(/; filament used \[mm\]/)!= -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1]+ "mm";
                 if(line.search("; total filament cost")!= -1) printingInformations.totalCost = line.split("; total filament cost = ")[1] + " CHF";
             });
+            logger.info("STL-ANALYSER - returnInformations - printing informations about last sliced file - ", `Cost: ${printingInformations.totalCost}, Time: ${printingInformations.printingTime}, Gr used: ${printingInformations.filamentUsedInGram}, mm used: ${printingInformations.filamentUsedInMillimeter}`);
             resolve(printingInformations);
         });
 
@@ -108,6 +110,7 @@ function returnInformations(gcodeFileName){
 
 let informations = executeCmd(initCmd())
     .then(() => {
+
         return returnInformations(cmdArgs.fileName)
     })
 

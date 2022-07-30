@@ -1,0 +1,22 @@
+{
+  "name": "stlanalyserapi",
+  "version": "1.0.0",
+  "description": "Node backend server with express who provide informations about an STL file after being tranformed in GCODE with prusaslicer",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RaphaelPittet/STLAnalyserAPI.git"
+  },
+  "author": "Pittet Raphael",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RaphaelPittet/STLAnalyserAPI/issues"
+  },
+  "homepage": "https://github.com/RaphaelPittet/STLAnalyserAPI#readme",
+  "dependencies": {
+    "logger": "^0.0.1"
+  }
+}
