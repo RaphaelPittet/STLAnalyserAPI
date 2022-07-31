@@ -114,4 +114,10 @@ let informations = executeCmd(initCmd())
         return returnInformations(cmdArgs.fileName)
     })
 
-informations.then(val => {console.log(val);});
+informations.then(val => {
+    // remove gcodes from export-gcodes directory
+    var filePath = `./export-gcodes/${cmdArgs.fileName}.gcode`;
+    fs.unlinkSync(filePath);
+
+    console.log(val);
+});
