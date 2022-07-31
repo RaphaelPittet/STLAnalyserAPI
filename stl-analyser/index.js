@@ -108,16 +108,16 @@ function returnInformations(gcodeFileName){
 }
 
 
-let informations = executeCmd(initCmd())
+executeCmd(initCmd())
     .then(() => {
 
         return returnInformations(cmdArgs.fileName)
     })
-
-informations.then(val => {
+    .then(val => {
     // remove gcodes from export-gcodes directory
     var filePath = `./export-gcodes/${cmdArgs.fileName}.gcode`;
     fs.unlinkSync(filePath);
 
     console.log(val);
+    return val;
 });
