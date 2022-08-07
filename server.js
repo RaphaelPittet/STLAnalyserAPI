@@ -54,16 +54,19 @@ app.get('/', function (req, res) {
 });
 
 
+
+
 // this endpoint provide informations about stl after slicing wth given param
 app.post('/upload', upload.single('file'), (req, res) => {
 
   // verify if there is a file in the request and if the file has the right format
   if( typeof req.file == 'undefined' )  res.send(`Please send a file with your request`);
   if(req.file.mimetype != 'model/stl')  res.send(`Please send an STL file with your request`);
-
+  console.log(req.body.fileName);
+  if(req.body.fileName == "") res.send(`Please add your stl filename in your request`);
 
   let slicingParam = {
-    filamentType: req.body.filamentType,
+    filamentType: req.body.filamentTypes,
     printSettings: req.body.printSettings,
     printerType: req.body.printerType,
     fillDensity: req.body.fillDensity,
@@ -84,11 +87,8 @@ app.post('/upload', upload.single('file'), (req, res) => {
         level: 'error',
         messsage: err.log
       });
-      return res.send(err.message) 
+      res.send(err.message) 
     });
-
-
-  //res.send('POST request to test endpoint' );
 });
 
 app.listen(3000)

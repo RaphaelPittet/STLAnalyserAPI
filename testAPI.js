@@ -22,7 +22,7 @@ let testParamWithoutfileName = {
   scalePercent: "150"
 }
 
-let testParam2 = {
+let testParamWithoutFilamentType = {
   filamentType: "",
   printSettings: "10mm",
   printerType: "ender3-V2",
@@ -40,12 +40,21 @@ let testParam3 = {
   scalePercent: "150"
 }
 
-let testParam4 = {
+let testParamWithoutPrintSettings = {
   filamentType: "PLA",
-  printSettings: "20mm",
+  printSettings: "",
   printerType: "ender3-V2",
   fillDensity: ".10",
   fileName: "entonoir",
+  scalePercent: "88"
+}
+
+let testParamWithoutDensity = {
+  filamentType: "PLA",
+  printSettings: "",
+  printerType: "ender3-V2",
+  fillDensity: ".10",
+  fileName: "Monkey_astronaut",
   scalePercent: "88"
 }
 
@@ -100,7 +109,10 @@ function generateRequest(slicingParam){
     });
 }
 
-generateRequest(testParam1);
-generateRequestWithoutFile(testParam2);
+//generateRequest(testParam1);
+//generateRequestWithoutFile(testParam2);
 //generateRequest(testParam3);
 //generateRequest(testParamWithoutfileName);
+generateRequest(testParamWithoutDensity);
+generateRequest(testParamWithoutPrintSettings);
+generateRequest(testParamWithoutFilamentType);
