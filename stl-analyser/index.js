@@ -106,8 +106,10 @@ function returnInformations(gcodeFileName){
                 if(line.search(/; filament used \[mm\]/)!= -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1]+ "mm";
                 if(line.search("; total filament cost")!= -1) printingInformations.totalCost = line.split("; total filament cost = ")[1] + " CHF";
             });
-            let filePath = `${GCODE_DIRECTORY}${gcodeFileName}.gcode`
-            fs.unlinkSync(filePath);
+            let gcodeFilePath = `${GCODE_DIRECTORY}${gcodeFileName}.gcode`
+            let stlFilePath = `${STL_DIRECTORY}${gcodeFileName}.stl`
+            fs.unlinkSync(gcodeFilePath);
+            fs.unlinkSync(stlFilePath);
             resolve(printingInformations);
         });
     })
