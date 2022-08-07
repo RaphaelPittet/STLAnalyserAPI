@@ -4,27 +4,8 @@ module.exports = { analyseSTL }
 //import and init
 const { exec } = require("child_process");
 const fs = require('fs');
-const { format, winston, createLogger, transports } = require('winston');
-const { combine, timestamp, printf} = format;
-const loggerFormat = printf(({level, message, timestamp}) => {
-    let timestampArray = timestamp.split('T');
-    let timestampFormat = `${timestampArray[0]} ${timestampArray[1].split('',8).join('')}`
-    return `${timestampFormat} [${level}] - ${message}`;
-})
+const { config } = require("process");
 
-const logger = createLogger({
-    level: 'info',
-    format: combine(
-        timestamp(),
-        loggerFormat
-    ),
-    defaultMeta: {service: 'user-service'},
-    transports: [
-        new transports.Console(),
-        new transports.File({filename: '../logs.log', level: 'info'}),
-        new transports.File({filename: '../errors.log', level: 'error'}),
-    ],
-})
 
 
 // DEFAULT VALUE
@@ -37,8 +18,11 @@ const DEFAULT_PRINT_PARAM = {
     scalePercent: "100"
 }
 
-const GCODE_DIRECTORY = 'export-gcodes/';
-const STL_DIRECTORY = 'tmp/';
+// path to main Directory of the stlAnalyser according to main API folder
+const MAIN_DIRECTORY = 'stl-analyser';
+const GCODE_DIRECTORY = `${MAIN_DIRECTORY}/export-gcodes/`;
+const STL_DIRECTORY = `${MAIN_DIRECTORY}/tmp/`;
+const CONFIG_DIRECTORY = `${MAIN_DIRECTORY}/config/`;
 
 
 
@@ -54,16 +38,14 @@ function analyseSTL(slicingParam){
     if(slicingParam.fillDensity == "") slicingParam.fillDensity = DEFAULT_PRINT_PARAM.fillDensity;
     if(slicingParam.scalePercent == "") slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
     if(slicingParam.fileName == "") {
-        logger.error("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
-        return Promise.reject("error: an stl file must be provided");
+        return Promise.reject("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
     }
-    let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ./config/config-files/print-settings/${slicingParam.printSettings}.ini --load ./config/config-files/filament-type/${slicingParam.filamentType}.ini --load ./config/config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
-    logger.log({
-        level: 'info',
-        message: `STL-ANALYSER - analyseSTL - new stl (${slicingParam.fileName}) will be sliced with param:  layer-height:${slicingParam.printSettings}-fill:${slicingParam.fillDensity*100}%-scaling:${slicingParam.scalePercent}%`
-    })
+    let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
+
     let generateGcode = executeCmd(cmd);
-    let allInformations = generateGcode.then(() => {return returnInformations(slicingParam.fileName)});
+    let allInformations = generateGcode
+                            .then(() => {return returnInformations(slicingParam.fileName)})
+                            .catch(err => {return Promise.reject(err)});
     return allInformations
 
 }
@@ -81,8 +63,7 @@ function executeCmd (cmd){
     return new Promise((resolve, reject) => {
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
-                logger.error(`STL-ANALYSER - executeCmd - error during cmd execution: ${err.message}`);
-                console.log(`STL-ANALYSER - executeCmd - error during cmd execution: ${err.message}`);
+                err.log = `STL-ANALYSER - executeCmd - error during cmd execution: ${err.message}`;
                 reject(err);
                 return;
             }
@@ -114,8 +95,7 @@ function returnInformations(gcodeFileName){
     return new Promise((resolve, reject) => {
         fs.readFile(`${GCODE_DIRECTORY}${gcodeFileName}.gcode`, 'utf8', (err, data) => {
             if (err) {
-                logger.error(`STL-ANALYSER - returnInformations - error while getting info: ${err.message}`);
-                console.log(`STL-ANALYSER - returnInformations - error while getting info: ${err.message}`);
+                err.log = `STL-ANALYSER - returnInformations - error while getting info: ${err.message}`
                 reject(err);
             }
             // for each line in data file, check if we found need informations and store it to printing 
@@ -126,7 +106,6 @@ function returnInformations(gcodeFileName){
                 if(line.search(/; filament used \[mm\]/)!= -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1]+ "mm";
                 if(line.search("; total filament cost")!= -1) printingInformations.totalCost = line.split("; total filament cost = ")[1] + " CHF";
             });
-            logger.info(`STL-ANALYSER - returnInformations - printing informations about last sliced file (${gcodeFileName}) - Cost:${printingInformations.totalCost}-Time:${printingInformations.printingTime}-used[Gr]:${printingInformations.filamentUsedInGram}-used[mm]:${printingInformations.filamentUsedInMillimeter}`);
             let filePath = `${GCODE_DIRECTORY}${gcodeFileName}.gcode`
             fs.unlinkSync(filePath);
             resolve(printingInformations);
