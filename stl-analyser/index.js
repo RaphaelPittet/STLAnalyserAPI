@@ -36,17 +36,10 @@ const DEFAULT_PRINT_PARAM = {
     fileName: "",
     scalePercent: "100"
 }
+
 const GCODE_DIRECTORY = 'export-gcodes/';
 const STL_DIRECTORY = 'tmp/';
 
-let testParam = {
-    filamentType: "PLA",
-    printSettings: "10mm",
-    printerType: "ender3-V2",
-    fillDensity: ".40",
-    fileName: "Monkey_astronaut",
-    scalePercent: "150"
-}
 
 
 /*
@@ -62,7 +55,7 @@ function analyseSTL(slicingParam){
     if(slicingParam.scalePercent == "") slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
     if(slicingParam.fileName == "") {
         logger.error("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
-        return "error: an stl file must be provided";
+        return Promise.reject("error: an stl file must be provided");
     }
     let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ./config/config-files/print-settings/${slicingParam.printSettings}.ini --load ./config/config-files/filament-type/${slicingParam.filamentType}.ini --load ./config/config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
     logger.log({
@@ -133,7 +126,7 @@ function returnInformations(gcodeFileName){
                 if(line.search(/; filament used \[mm\]/)!= -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1]+ "mm";
                 if(line.search("; total filament cost")!= -1) printingInformations.totalCost = line.split("; total filament cost = ")[1] + " CHF";
             });
-            logger.info(`STL-ANALYSER - returnInformations - printing informations about last sliced file - Cost:${printingInformations.totalCost}-Time:${printingInformations.printingTime}-used[Gr]:${printingInformations.filamentUsedInGram}-used[mm]:${printingInformations.filamentUsedInMillimeter}`);
+            logger.info(`STL-ANALYSER - returnInformations - printing informations about last sliced file (${gcodeFileName}) - Cost:${printingInformations.totalCost}-Time:${printingInformations.printingTime}-used[Gr]:${printingInformations.filamentUsedInGram}-used[mm]:${printingInformations.filamentUsedInMillimeter}`);
             let filePath = `${GCODE_DIRECTORY}${gcodeFileName}.gcode`
             fs.unlinkSync(filePath);
             resolve(printingInformations);
@@ -148,4 +141,4 @@ function returnInformations(gcodeFileName){
 
 
 
-analyseSTL(testParam).then((val) => console.log(val));
+
