@@ -4,19 +4,30 @@ module.exports = { analyseSTL }
 //import and init
 const { exec } = require("child_process");
 const fs = require('fs');
-const winston = require('winston');
-const logger = winston.createLogger({
+const { format, winston, createLogger, transports } = require('winston');
+const { combine, timestamp, printf} = format;
+const loggerFormat = printf(({level, message, timestamp}) => {
+    let timestampArray = timestamp.split('T');
+    let timestampFormat = `${timestampArray[0]} ${timestampArray[1].split('',8).join('')}`
+    return `${timestampFormat} [${level}] - ${message}`;
+})
+
+const logger = createLogger({
     level: 'info',
-    format: winston.format.json(),
+    format: combine(
+        timestamp(),
+        loggerFormat
+    ),
     defaultMeta: {service: 'user-service'},
     transports: [
-        new winston.transports.File({filename: '../logs.log', level: 'info'}),
-        new winston.transports.File({filename: '../errors.log', level: 'error'}),
+        new transports.Console(),
+        new transports.File({filename: '../logs.log', level: 'info'}),
+        new transports.File({filename: '../errors.log', level: 'error'}),
     ],
 })
 
 
-// init printing param with default value
+// DEFAULT VALUE
 const DEFAULT_PRINT_PARAM = {
     filamentType: "PLA",
     printSettings: "20mm",
@@ -25,6 +36,8 @@ const DEFAULT_PRINT_PARAM = {
     fileName: "",
     scalePercent: "100"
 }
+const GCODE_DIRECTORY = 'export-gcodes/';
+const STL_DIRECTORY = 'tmp/';
 
 let testParam = {
     filamentType: "PLA",
@@ -51,9 +64,7 @@ function analyseSTL(slicingParam){
         logger.error("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
         return "error: an stl file must be provided";
     }
-
-    let cmd = `prusa-slicer --export-gcode tmp/${slicingParam.fileName}.stl --load ./config/config-files/print-settings/${slicingParam.printSettings}.ini --load ./config/config-files/filament-type/${slicingParam.filamentType}.ini --load ./config/config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output export-gcodes/${slicingParam.fileName}.gcode`;
-    logger.info(`STL-ANALYSER - analyseSTL - new stl (${slicingParam.fileName}) will be sliced with param:  layer-height:${slicingParam.printSettings}-fill:${slicingParam.fillDensity*100}%-scaling:${slicingParam.scalePercent}%`);
+    let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ./config/config-files/print-settings/${slicingParam.printSettings}.ini --load ./config/config-files/filament-type/${slicingParam.filamentType}.ini --load ./config/config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
     logger.log({
         level: 'info',
         message: `STL-ANALYSER - analyseSTL - new stl (${slicingParam.fileName}) will be sliced with param:  layer-height:${slicingParam.printSettings}-fill:${slicingParam.fillDensity*100}%-scaling:${slicingParam.scalePercent}%`
@@ -108,7 +119,7 @@ function returnInformations(gcodeFileName){
     // new promise that return a printing informations object if ok
     // and return the err if there is error
     return new Promise((resolve, reject) => {
-        fs.readFile(`./export-gcodes/${gcodeFileName}.gcode`, 'utf8', (err, data) => {
+        fs.readFile(`${GCODE_DIRECTORY}${gcodeFileName}.gcode`, 'utf8', (err, data) => {
             if (err) {
                 logger.error(`STL-ANALYSER - returnInformations - error while getting info: ${err.message}`);
                 console.log(`STL-ANALYSER - returnInformations - error while getting info: ${err.message}`);
@@ -122,10 +133,11 @@ function returnInformations(gcodeFileName){
                 if(line.search(/; filament used \[mm\]/)!= -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1]+ "mm";
                 if(line.search("; total filament cost")!= -1) printingInformations.totalCost = line.split("; total filament cost = ")[1] + " CHF";
             });
-            logger.info("STL-ANALYSER - returnInformations - printing informations about last sliced file - ", `Cost: ${printingInformations.totalCost}, Time: ${printingInformations.printingTime}, Gr used: ${printingInformations.filamentUsedInGram}, mm used: ${printingInformations.filamentUsedInMillimeter}`);
+            logger.info(`STL-ANALYSER - returnInformations - printing informations about last sliced file - Cost:${printingInformations.totalCost}-Time:${printingInformations.printingTime}-used[Gr]:${printingInformations.filamentUsedInGram}-used[mm]:${printingInformations.filamentUsedInMillimeter}`);
+            let filePath = `${GCODE_DIRECTORY}${gcodeFileName}.gcode`
+            fs.unlinkSync(filePath);
             resolve(printingInformations);
         });
-
     })
 }
 
