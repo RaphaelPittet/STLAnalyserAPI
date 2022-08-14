@@ -4,6 +4,7 @@ const { format, createLogger, transports } = require('winston');
 const { combine, timestamp, printf} = format;
 const STLAnalyser = require('./stl-analyser/index');
 const multer = require('multer');
+const cors = require('cors');
 
 
 // init directory where file will be stored
@@ -40,6 +41,11 @@ const logger = createLogger({
 })
 
 
+
+
+// all request pass throught this "middleware"
+app.use(cors());
+
 app.use((req, res, next) => {
   logger.log({
     level: 'info',
@@ -47,6 +53,9 @@ app.use((req, res, next) => {
   });
   next();
 })
+
+
+
 
 
 app.get('/', function (req, res) {
@@ -59,20 +68,24 @@ app.get('/', function (req, res) {
 // this endpoint provide informations about stl after slicing wth given param
 app.post('/upload', upload.single('file'), (req, res) => {
 
+  let slicingParam = {};
+
   // verify if there is a file in the request and if the file has the right format
   if( typeof req.file == 'undefined' )  res.send(`Please send a file with your request`);
   if(req.file.mimetype != 'model/stl')  res.send(`Please send an STL file with your request`);
-  console.log(req.body.fileName);
-  if(req.body.fileName == "") res.send(`Please add your stl filename in your request`);
 
-  let slicingParam = {
-    filamentType: req.body.filamentTypes,
-    printSettings: req.body.printSettings,
-    printerType: req.body.printerType,
-    fillDensity: req.body.fillDensity,
-    fileName: req.body.fileName.split('.stl')[0],
-    scalePercent: req.body.scalePercent,
-  }
+
+  // init all slicing param values to be equal of the values in the body request, or if they aren't specified, add default values
+  slicingParam.filamentType = typeof req.body.filamentType == 'undefined' ? slicingParam.filamentType = '' :  slicingParam.filamentType = req.body.filamentType ;
+  slicingParam.printSettings = typeof req.body.printSettings =='undefined' ? slicingParam.printSettings = '' : slicingParam.printSettings = req.body.printSettings;
+  slicingParam.printerType = typeof req.body.printerType == 'undefined' ? slicingParam.printerType = '' : slicingParam.printerType = req.body.printerType;
+  slicingParam.fillDensity = typeof req.body.fillDensity == 'undefined' ? slicingParam.fillDensity = '' : slicingParam.fillDensity = req.body.fillDensity;
+  slicingParam.scalePercent = typeof req.body.scalePercent == 'undefined' ? slicingParam.scalePercent = '' : slicingParam.scalePercent = req.body.scalePercent;
+  slicingParam.fileName = req.file.originalname.split('.stl')[0];
+
+
+  console.log(slicingParam.fileName);
+
 
   STLAnalyser.analyseSTL(slicingParam)
     .then(informations => { 
