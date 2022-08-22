@@ -5,6 +5,7 @@ const { combine, timestamp, printf} = format;
 const STLAnalyser = require('./stl-analyser/index');
 const multer = require('multer');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 
 // init directory where file will be stored
@@ -54,11 +55,15 @@ app.use((req, res, next) => {
   next();
 })
 
+//Encode URL to be readable
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
 
-app.get('/', function (req, res) {
+
+
+app.get('/test', function (req, res) {
   res.send('Hello World');
 });
 
@@ -67,13 +72,18 @@ app.get('/', function (req, res) {
 
 // this endpoint provide informations about stl after slicing wth given param
 app.post('/upload', upload.single('file'), (req, res) => {
-
   let slicingParam = {};
-
+  console.log(req.body);
   // verify if there is a file in the request and if the file has the right format
-  if( typeof req.file == 'undefined' )  res.send(`Please send a file with your request`);
-  if(req.file.mimetype != 'model/stl')  res.send(`Please send an STL file with your request`);
+  if( typeof req.file == 'undefined' ) {
+    return res.json(`Please send a file with your request`);  
+  } 
+  if(req.file.mimetype != 'application/octet-stream') {
+    console.log('Please send an STL file with your request');
+     return res.json(`Please send an STL file with your request`);
 
+  } 
+  
 
   // init all slicing param values to be equal of the values in the body request, or if they aren't specified, add default values
   slicingParam.filamentType = typeof req.body.filamentType == 'undefined' ? slicingParam.filamentType = '' :  slicingParam.filamentType = req.body.filamentType ;
@@ -93,14 +103,14 @@ app.post('/upload', upload.single('file'), (req, res) => {
         level: 'info',
         message: `STL-ANALYSER-API/upload[${req.method}] - analyseSTL - new stl (${slicingParam.fileName})[layer-height:${slicingParam.printSettings}-fill:${slicingParam.fillDensity*100}%-scaling:${slicingParam.scalePercent}%] - [Time:${informations.printingTime}-Cost:${informations.totalCost}-used[gr]:${informations.filamentUsedInGram}-used[mm]:${informations.filamentUsedInMillimeter}]`
       });
-      res.send(informations) 
+      return res.json(informations) 
     })
     .catch(err => { 
       logger.log({
         level: 'error',
-        messsage: err.log
+        messsage: err.message
       });
-      res.send(err.message) 
+    res.send(err.message) 
     });
 });
 
