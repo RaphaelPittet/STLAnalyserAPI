@@ -41,7 +41,7 @@ function analyseSTL(slicingParam) {
         return Promise.reject("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
     }
     let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
-
+    console.log('commande launched :', cmd);
     let generateGcode = executeCmd(cmd);
     let allInformations = generateGcode
         .then(() => { return returnInformations(slicingParam.fileName) })
