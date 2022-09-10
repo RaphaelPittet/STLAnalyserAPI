@@ -9,7 +9,10 @@ let testParam1 = {
     printerType: "ender3-V2",
     fillDensity: ".40",
     fileName: "Monkey_astronaut",
-    scalePercent: "150"
+    scalePercent: "150",
+    xScale: "",
+    yScale: "",
+    zScale: "",
 }
 
 
@@ -19,7 +22,10 @@ let testParamWithoutfileName = {
     printerType: "ender3-V2",
     fillDensity: ".40",
     fileName: "",
-    scalePercent: "150"
+    scalePercent: "150",
+    xScale: "",
+    yScale: "",
+    zScale: "",
 }
 
 let testParam2 = {
@@ -28,7 +34,10 @@ let testParam2 = {
     printerType: "ender3-V2",
     fillDensity: ".40",
     fileName: "watch4-stand",
-    scalePercent: "150"
+    scalePercent: "150",
+    xScale: "",
+    yScale: "",
+    zScale: "",
 }
 
 let testParam3 = {
@@ -37,7 +46,10 @@ let testParam3 = {
     printerType: "ender3-V2",
     fillDensity: ".40",
     fileName: "Monkey_astronaut",
-    scalePercent: "150"
+    scalePercent: "150",
+    xScale: "",
+    yScale: "",
+    zScale: "",
 }
 
 let testParam4 = {
@@ -46,9 +58,23 @@ let testParam4 = {
     printerType: "ender3-V2",
     fillDensity: ".10",
     fileName: "entonoir",
-    scalePercent: "88"
+    scalePercent: "88",
+    xScale: "",
+    yScale: "",
+    zScale: "",
 }
 
+let testParam5 = {
+    filamentType: "PLA",
+    printSettings: "20mm",
+    printerType: "ender3-V2",
+    fillDensity: ".10",
+    fileName: "entonoir",
+    scalePercent: "",
+    xScale: "100",
+    yScale: "150",
+    zScale: "200",
+}
 
 /*
 * generateTestCmd function do execute cmd via analyseSTl function using slicingParam and log the result on the console
@@ -65,6 +91,7 @@ function generateTestCmd(slicingParam){
 // test part
 generateTestCmd(testParam1)
 generateTestCmd(testParam2)
-generateTestCmd(testParam3)
-generateTestCmd(testParam4)
+//generateTestCmd(testParam4)
+generateTestCmd(testParam5)
+
 generateTestCmd(testParamWithoutfileName)

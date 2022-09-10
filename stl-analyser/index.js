@@ -15,14 +15,16 @@ const DEFAULT_PRINT_PARAM = {
     printerType: "ender3-V2",
     fillDensity: ".15",
     fileName: "",
-    scalePercent: "100"
+    scalePercent: "100",
+    xScale: "100",
+    yScale: "100",
+    zScale: "100"
 }
 
 // path to main Directory of the stlAnalyser according to main API folder
-const MAIN_DIRECTORY = 'stl-analyser';
-const GCODE_DIRECTORY = `${MAIN_DIRECTORY}/export-gcodes/`;
-const STL_DIRECTORY = `${MAIN_DIRECTORY}/tmp/`;
-const CONFIG_DIRECTORY = `${MAIN_DIRECTORY}/config/`;
+const GCODE_DIRECTORY = `./export-gcodes/`;
+const STL_DIRECTORY = `./tmp/`;
+const CONFIG_DIRECTORY = `./config/`;
 
 
 
@@ -32,22 +34,27 @@ const CONFIG_DIRECTORY = `${MAIN_DIRECTORY}/config/`;
 * @return a promise that provide an object with all informations about the STL after slicing
 */
 function analyseSTL(slicingParam) {
+    let cmd;
     if (slicingParam.printSettings == "") slicingParam.printSettings = DEFAULT_PRINT_PARAM.printSettings;
     if (slicingParam.filamentType == "") slicingParam.filamentType = DEFAULT_PRINT_PARAM.filamentType;
     if (slicingParam.printerType == "") slicingParam.printerType = DEFAULT_PRINT_PARAM.printerType;
     if (slicingParam.fillDensity == "") slicingParam.fillDensity = DEFAULT_PRINT_PARAM.fillDensity;
-    if (slicingParam.scalePercent == "") slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
     if (slicingParam.fileName == "") {
         return Promise.reject("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
     }
-    let cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
-    console.log('commande launched :', cmd);
+    if (slicingParam.xScale != "" && slicingParam.yScale != "" && slicingParam.zScale != "" ) {
+    cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale-to-fit ${slicingParam.xScale},${slicingParam.yScale},${slicingParam.zScale} --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
+    }else{
+        slicingParam.scalePercent = slicingParam.scalePercent == "" ? slicingParam.scalePercent = slicingParam.scalePercent : slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
+        cmd = `prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`;
+    }
+    console.log('commande to launch :', cmd);
     let generateGcode = executeCmd(cmd);
     let allInformations = generateGcode
         .then(() => { return returnInformations(slicingParam.fileName) })
-        .catch(err => { return Promise.reject(err) });
+        .catch(err => { return Promise.reject(err)});
+        // TODO - beautify
     return allInformations
-
 }
 
 
@@ -93,6 +100,7 @@ function returnInformations(gcodeFileName) {
     // new promise that return a printing informations object if ok
     // and return the err if there is error
     return new Promise((resolve, reject) => {
+        // read gcode file with given filename in the gcode directory
         fs.readFile(`${GCODE_DIRECTORY}${gcodeFileName}.gcode`, 'utf8', (err, data) => {
             if (err) {
                 err.log = `STL-ANALYSER - returnInformations - error while getting info: ${err.message}`;

@@ -91,6 +91,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
   slicingParam.printerType = typeof req.body.printerType == 'undefined' ? slicingParam.printerType = '' : slicingParam.printerType = req.body.printerType;
   slicingParam.fillDensity = typeof req.body.fillDensity == 'undefined' ? slicingParam.fillDensity = '' : slicingParam.fillDensity = req.body.fillDensity;
   slicingParam.scalePercent = typeof req.body.scalePercent == 'undefined' ? slicingParam.scalePercent = '' : slicingParam.scalePercent = req.body.scalePercent;
+  slicingParam.xScale = typeof req.body.xScale == 'undefined' ? slicingParam.xScale = '' : slicingParam.xScale = req.body.xScale;
+  slicingParam.yScale = typeof req.body.yScale == 'undefined' ? slicingParam.yScale = '' : slicingParam.yScale = req.body.yScale;
+  slicingParam.zScale = typeof req.body.zScale == 'undefined' ? slicingParam.zScale = '' : slicingParam.zScale = req.body.zScale;
   slicingParam.fileName = req.file.originalname.split('.stl')[0];
 
 
