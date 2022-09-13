@@ -69,11 +69,11 @@ let testParam5 = {
     printSettings: "20mm",
     printerType: "ender3-V2",
     fillDensity: ".10",
-    fileName: "entonoir",
+    fileName: "Monkey_astronaut",
     scalePercent: "",
-    xScale: "100",
-    yScale: "150",
-    zScale: "200",
+    xScale: "2",
+    yScale: "3",
+    zScale: "1",
 }
 
 /*
@@ -89,9 +89,9 @@ function generateTestCmd(slicingParam){
 
 
 // test part
-generateTestCmd(testParam1)
-generateTestCmd(testParam2)
+//generateTestCmd(testParam1)
+//generateTestCmd(testParam2)
 //generateTestCmd(testParam4)
 generateTestCmd(testParam5)
 
-generateTestCmd(testParamWithoutfileName)
+//generateTestCmd(testParamWithoutfileName)

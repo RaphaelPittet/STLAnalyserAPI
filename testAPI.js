@@ -9,7 +9,10 @@ let testParam1 = {
   printerType: "ender3-V2",
   fillDensity: ".40",
   fileName: "Monkey_astronaut",
-  scalePercent: "150"
+  scalePercent: "150",
+  xScale: "",
+  yScale: "",
+  zScale: "",
 }
 
 
@@ -19,7 +22,10 @@ let testParamWithoutfileName = {
   printerType: "ender3-V2",
   fillDensity: ".40",
   fileName: "",
-  scalePercent: "150"
+  scalePercent: "150",
+  xScale: "",
+  yScale: "",
+  zScale: "",
 }
 
 let testParamWithoutFilamentType = {
@@ -28,7 +34,10 @@ let testParamWithoutFilamentType = {
   printerType: "ender3-V2",
   fillDensity: ".40",
   fileName: "watch4-stand",
-  scalePercent: "150"
+  scalePercent: "150",
+  xScale: "",
+  yScale: "",
+  zScale: "",
 }
 
 let testParam3 = {
@@ -37,7 +46,22 @@ let testParam3 = {
   printerType: "ender3-V2",
   fillDensity: ".40",
   fileName: "Monkey_astronaut",
-  scalePercent: "150"
+  scalePercent: "150",
+  xScale: "",
+  yScale: "",
+  zScale: "",
+}
+
+let testParamWithAxesScale = {
+  filamentType: "PLA",
+  printSettings: "20mm",
+  printerType: "ender3-V2",
+  fillDensity: ".40",
+  fileName: "Monkey_astronaut",
+  scalePercent: "",
+  xScale: "2",
+  yScale: "3",
+  zScale: "1",
 }
 
 let testParamWithoutPrintSettings = {
@@ -113,6 +137,7 @@ function generateRequest(slicingParam){
 //generateRequestWithoutFile(testParam2);
 //generateRequest(testParam3);
 //generateRequest(testParamWithoutfileName);
-generateRequest(testParamWithoutDensity);
-generateRequest(testParamWithoutPrintSettings);
-generateRequest(testParamWithoutFilamentType);
+//generateRequest(testParamWithoutDensity);
+//generateRequest(testParamWithoutPrintSettings);
+//generateRequest(testParamWithoutFilamentType);
+generateRequest(testParamWithAxesScale);

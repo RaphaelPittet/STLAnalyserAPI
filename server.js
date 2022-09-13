@@ -73,17 +73,17 @@ app.get('/test', function (req, res) {
 // this endpoint provide informations about stl after slicing wth given param
 app.post('/upload', upload.single('file'), (req, res) => {
   let slicingParam = {};
-  console.log(req.body);
   // verify if there is a file in the request and if the file has the right format
   if( typeof req.file == 'undefined' ) {
     return res.json(`Please send a file with your request`);  
   } 
+  /*
   if(req.file.mimetype != 'application/octet-stream') {
     console.log('Please send an STL file with your request');
      return res.json(`Please send an STL file with your request`);
 
   } 
-  
+  */
 
   // init all slicing param values to be equal of the values in the body request, or if they aren't specified, add default values
   slicingParam.filamentType = typeof req.body.filamentType == 'undefined' ? slicingParam.filamentType = '' :  slicingParam.filamentType = req.body.filamentType ;
@@ -96,10 +96,6 @@ app.post('/upload', upload.single('file'), (req, res) => {
   slicingParam.zScale = typeof req.body.zScale == 'undefined' ? slicingParam.zScale = '' : slicingParam.zScale = req.body.zScale;
   slicingParam.fileName = req.file.originalname.split('.stl')[0];
 
-
-  console.log(slicingParam.fileName);
-
-
   STLAnalyser.analyseSTL(slicingParam)
     .then(informations => { 
       logger.log({
@@ -111,9 +107,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
     .catch(err => { 
       logger.log({
         level: 'error',
-        messsage: err.message
+        messsage: err.log
       });
-    res.send(err.message) 
+    res.send(err) 
     });
 });
 
