@@ -4,7 +4,6 @@ module.exports = { analyseSTL }
 //import and init
 const { exec } = require("child_process");
 const fs = require('fs');
-const { config } = require("process");
 
 
 /* ----------------------------------------------------------------------------------------------------------------
@@ -37,21 +36,21 @@ FUNCTIONS
 /*
 * analyseSTL - main function of the file, ths function can be call by another file
 * @param slicingParam - an object with all needed param to slice the stl correctly
-* @return a promise that provide an object with all informations about the STL after slicing
+* @return a promise that provide an object with all information about the STL after slicing
 */
 function analyseSTL(slicingParam) {
-    if (slicingParam.printSettings == "") slicingParam.printSettings = DEFAULT_PRINT_PARAM.printSettings;
-    if (slicingParam.filamentType == "") slicingParam.filamentType = DEFAULT_PRINT_PARAM.filamentType;
-    if (slicingParam.printerType == "") slicingParam.printerType = DEFAULT_PRINT_PARAM.printerType;
-    if (slicingParam.fillDensity == "") slicingParam.fillDensity = DEFAULT_PRINT_PARAM.fillDensity;
-    if (slicingParam.fileName == "") {
+    if (slicingParam.printSettings === "") slicingParam.printSettings = DEFAULT_PRINT_PARAM.printSettings;
+    if (slicingParam.filamentType === "") slicingParam.filamentType = DEFAULT_PRINT_PARAM.filamentType;
+    if (slicingParam.printerType === "") slicingParam.printerType = DEFAULT_PRINT_PARAM.printerType;
+    if (slicingParam.fillDensity === "") slicingParam.fillDensity = DEFAULT_PRINT_PARAM.fillDensity;
+    if (slicingParam.fileName === "") {
         return Promise.reject("STL-ANALYSER - analyseSTL - an STL fileName must be specified");
     }
     // new promise that check if file is scaled in percent, or by axes and return the corresponding command to launch
-    editCmdPromise = new Promise((resolve) => {
+    let editCmdPromise = new Promise((resolve) => {
 
         // check if file is scaled by axes
-        if (slicingParam.xScale != "" && slicingParam.yScale != "" && slicingParam.zScale != "") {
+        if (slicingParam.xScale !== "" && slicingParam.yScale !== "" && slicingParam.zScale !== "") {
             slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
             // resizeSTL create a new stl file with the correct dimensions and return the new name of the STL
             resizeSTL(slicingParam.fileName, slicingParam.xScale, slicingParam.yScale, slicingParam.zScale)
@@ -60,15 +59,15 @@ function analyseSTL(slicingParam) {
                     resolve(`prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`);
                 })
         } else {
-            // if STL isn't edited by axes, get the given scale percent and if it isn't specified, it take the default value (100%)
-            slicingParam.scalePercent = slicingParam.scalePercent == "" ? slicingParam.scalePercent = slicingParam.scalePercent : slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
+            // if STL isn't edited by axes, get the given scale percent and if it isn't specified, it takes the default value (100%)
+            slicingParam.scalePercent = slicingParam.scalePercent === "" ? "" : slicingParam.scalePercent = DEFAULT_PRINT_PARAM.scalePercent;
             resolve(`prusa-slicer --export-gcode ${STL_DIRECTORY}${slicingParam.fileName}.stl --load ${CONFIG_DIRECTORY}config-files/print-settings/${slicingParam.printSettings}.ini --load ${CONFIG_DIRECTORY}config-files/filament-type/${slicingParam.filamentType}.ini --load ${CONFIG_DIRECTORY}config-files/printer-type/${slicingParam.printerType}.ini --fill-density .15 --scale ${slicingParam.scalePercent}% --output ${GCODE_DIRECTORY}${slicingParam.fileName}.gcode`);
         }
     });
     return editCmdPromise.then((cmd) => {
-        console.log('commande to launch :', cmd);
+        console.log('command to launch :', cmd);
         return executeCmd(cmd)
-            .then(() => { return returnInformations(slicingParam.fileName) })
+            .then(() => { return returnInformation(slicingParam.fileName) })
             .catch(err => {
                 removeSTL(slicingParam.fileName);
                 return Promise.reject(err.log)
@@ -81,21 +80,21 @@ function analyseSTL(slicingParam) {
 
 
 /*
-resizeSTL function get the filename, and all axes factor, to create a new stlfile with the specified dimension. 
-to do that this funciton create new file with stlcmd tool and remove the old file after that
+resizeSTL function get the filename, and all axes factor, to create a new stl file with the specified dimension.
+to do that this function create new file with stl cmd tool and remove the old file after that
 @param fileName - the name of the stl file that must be resized
 @param xScale - x scale factor must be mor than 0
 @param yScale - y scale factor must be mor than 0
 @param zScale - z scale factor must be mor than 0
-@return - A Promise with newfilename as value
+@return - A Promise with new filename as value
 */
 function resizeSTL(fileName, xScale, yScale, zScale) {
-    let NewfileName = fileName + "-resized";
-    return executeCmd(`stl_transform -sx ${xScale} -sy ${yScale} -sz ${zScale} ${STL_DIRECTORY}${fileName}.stl ${STL_DIRECTORY}${NewfileName}.stl`)
+    let newFilename = fileName + "-resized";
+    return executeCmd(`stl_transform -sx ${xScale} -sy ${yScale} -sz ${zScale} ${STL_DIRECTORY}${fileName}.stl ${STL_DIRECTORY}${newFilename}.stl`)
         .then(() => {
             let stlFilePath = `${STL_DIRECTORY}${fileName}.stl`;
             fs.unlinkSync(stlFilePath);
-            return NewfileName
+            return newFilename
         });
 }
 
@@ -103,14 +102,14 @@ function resizeSTL(fileName, xScale, yScale, zScale) {
 
 
 /*
-* exectueCmd get a cmd in parameter, execute this commande on a shell 
+* executeCmd get a cmd in parameter, execute this command on a shell
 * and log the result
 * @param cmd - String command
-* @return all commande line informations provided by the executed command in a Promise
+* @return all commands line information provided by the executed command in a Promise
 */
 function executeCmd(cmd) {
     return new Promise((resolve, reject) => {
-        exec(cmd, (err, stdout, stderr) => {
+        exec(cmd, (err, stdout) => {
             if (err) {
                 err.log = `STL-ANALYSER - executeCmd - error during cmd execution: ${err.message}`;
                 reject(err);
@@ -125,40 +124,40 @@ function executeCmd(cmd) {
 
 
 /*
-* returnInformations return needed informations about the desired Gcode in the *export-gcodes" directory
-* @param gcodeFileName - the name of the gcode that we wants informations
-* @return - an object with all needed informations in a Promise
+* returnInformation return needed information about the desired .gcode in the "export-gcodes" directory
+* @param gcodeFileName - the name of the .gcode that we want information
+* @return - an object with all needed information in a Promise
 */
-function returnInformations(gcodeFileName) {
+function returnInformation(gcodeFileName) {
 
-    // init printing informations object
-    let printingInformations = {
+    // init printing information object
+    let printingInformation = {
         printingTime: "",
         filamentUsedInMillimeter: "",
         filamentUsedInGram: "",
         totalCost: ""
     }
 
-    // new promise that return a printing informations object if ok
+    // new promise that return a printing information object if ok
     // and return the err if there is error
     return new Promise((resolve, reject) => {
         // read gcode file with given filename in the gcode directory
         fs.readFile(`${GCODE_DIRECTORY}${gcodeFileName}.gcode`, 'utf8', (err, data) => {
             if (err) {
-                err.log = `STL-ANALYSER - returnInformations - error while getting info: ${err.message}`;
+                err.log = `STL-ANALYSER - returnInformation - error while getting info: ${err.message}`;
                 reject(err);
             }
-            // for each line in data file, check if we found need informations and store it to printing 
-            // informations object
+            // for each line in data file, check if we found need information and store it to printing
+            // information object
             data.split(/\r?\n/).forEach(line => {
-                if (line.search("; estimated printing time") != -1) printingInformations.printingTime = line.split("; estimated printing time (normal mode) = ")[1];
-                if (line.search(/; filament used \[g\]/) != -1) printingInformations.filamentUsedInGram = line.split("; filament used [g] = ")[1];
-                if (line.search(/; filament used \[mm\]/) != -1) printingInformations.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1];
-                if (line.search("; total filament cost") != -1) printingInformations.totalCost = line.split("; total filament cost = ")[1];
+                if (line.search("; estimated printing time") !== -1) printingInformation.printingTime = line.split("; estimated printing time (normal mode) = ")[1];
+                if (line.search(/; filament used \[g\]/) !== -1) printingInformation.filamentUsedInGram = line.split("; filament used [g] = ")[1];
+                if (line.search(/; filament used \[mm\]/) !== -1) printingInformation.filamentUsedInMillimeter = line.split("; filament used [mm] = ")[1];
+                if (line.search("; total filament cost") !== -1) printingInformation.totalCost = line.split("; total filament cost = ")[1];
             });
             removeGCode(gcodeFileName);
             removeSTL(gcodeFileName);
-            resolve(printingInformations);
+            resolve(printingInformation);
         });
     })
 }

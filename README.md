@@ -10,13 +10,14 @@ Node backend server with express who provide informations about an STL file afte
 | Execute command with parameter (printer profil, filament type, etc) | 2.00 | Done |   |
 | Execute command correclty and provide informations | 3.00 | Done |   |
 | Express API Server | 4.00  | DONE |   |
-| GET Endpoint provide needed informations  | 5.00 | In-Progress |   |
+| POST Endpoint provide needed informations  | 5.00 | DONE |   
+| Adding Endpoint to CRUD other printing pramaeter file | 6.00 | In-Progress
 
 
 
 ## Required
 - NodeJS
-- Prusaslicer 
+- Prusa-slicer 
 
 
 ## Docs
