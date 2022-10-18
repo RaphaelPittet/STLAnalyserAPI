@@ -3,6 +3,7 @@ const app = express()
 const { format, createLogger, transports } = require('winston');
 const { combine, timestamp, printf} = format;
 const STLAnalyser = require('./stl-analyser/index');
+const Utils = require('./utils/format-data');
 const multer = require('multer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -76,7 +77,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
   // verify if there is a file in the request and if the file has the right format
   if( typeof req.file == 'undefined' ) {
     return res.json(`Please send a file with your request`);  
-  } 
+  }
+
+
   /*
   if(req.file.mimetype != 'application/octet-stream') {
     console.log('Please send an STL file with your request');
@@ -85,29 +88,23 @@ app.post('/upload', upload.single('file'), (req, res) => {
   } 
   */
 
-  // init all slicing param values to be equal of the values in the body request, or if they aren't specified, add default values
-  slicingParam.filamentType = typeof req.body.filamentType == 'undefined' ? slicingParam.filamentType = '' :  slicingParam.filamentType = req.body.filamentType ;
-  slicingParam.printSettings = typeof req.body.printSettings =='undefined' ? slicingParam.printSettings = '' : slicingParam.printSettings = req.body.printSettings;
-  slicingParam.printerType = typeof req.body.printerType == 'undefined' ? slicingParam.printerType = '' : slicingParam.printerType = req.body.printerType;
-  slicingParam.fillDensity = typeof req.body.fillDensity == 'undefined' ? slicingParam.fillDensity = '' : slicingParam.fillDensity = req.body.fillDensity;
-  slicingParam.scalePercent = typeof req.body.scalePercent == 'undefined' ? slicingParam.scalePercent = '' : slicingParam.scalePercent = req.body.scalePercent;
-  slicingParam.xScale = typeof req.body.xScale == 'undefined' ? slicingParam.xScale = '' : slicingParam.xScale = req.body.xScale;
-  slicingParam.yScale = typeof req.body.yScale == 'undefined' ? slicingParam.yScale = '' : slicingParam.yScale = req.body.yScale;
-  slicingParam.zScale = typeof req.body.zScale == 'undefined' ? slicingParam.zScale = '' : slicingParam.zScale = req.body.zScale;
-  slicingParam.fileName = req.file.originalname.split('.stl')[0];
+    //init Data with slicing parameter given in the body of the request
+    slicingParam = Utils.formatReqSlicingPram(req.body);
+    slicingParam.fileName = req.file.originalname.split('.stl')[0];
+    console.log(slicingParam);
 
   STLAnalyser.analyseSTL(slicingParam)
-    .then(informations => { 
+    .then(informations => {
       logger.log({
         level: 'info',
         message: `STL-ANALYSER-API/upload[${req.method}] - analyseSTL - new stl (${slicingParam.fileName})[layer-height:${slicingParam.printSettings}-fill:${slicingParam.fillDensity*100}%-scaling:${slicingParam.scalePercent}%] - [Time:${informations.printingTime}-Cost:${informations.totalCost}-used[gr]:${informations.filamentUsedInGram}-used[mm]:${informations.filamentUsedInMillimeter}]`
       });
-      return res.json(informations) 
+      return res.json(informations)
     })
     .catch(err => { 
       logger.log({
         level: 'error',
-        messsage: err.log
+        message: err.log
       });
     res.send(err) 
     });
