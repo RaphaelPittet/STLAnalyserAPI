@@ -1,0 +1,26 @@
+[
+  {
+    "type": "filamentType",
+    "name": "PLA"
+  },
+  {
+    "type": "printerType",
+    "name": "ender3-V2"
+  },
+  {
+    "type": "printSettings",
+    "name": "high-grid"
+  },
+  {
+    "type": "printSettings",
+    "name": "normal-grid"
+  },
+  {
+    "type": "printSettings",
+    "name": "low-grid"
+  },
+  {
+    "type": "printSettings",
+    "name": "high-gyroid"
+  }
+]

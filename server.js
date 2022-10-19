@@ -71,9 +71,7 @@ app.get('/api/admin/print-settings/', function (req,res){
 
     let files = fs.readdirSync('./stl-analyser/config/config-files/print-settings/');
     console.log(files);
-
     res.json(files);
-
 });
 
 
@@ -96,9 +94,14 @@ app.post('/upload', upload.single('file'), (req, res) => {
     */
 
     //init Data with slicing parameter given in the body of the request
-    slicingParam = Utils.formatReqSlicingPram(req.body);
-    slicingParam.fileName = req.file.originalname.split('.stl')[0];
+    try {
+        slicingParam = Utils.formatReqSlicingPram(req.body);
+        slicingParam.fileName = req.file.originalname.split('.stl')[0];
+    }catch (err){
+        res.send(err);
+    }
 
+    /*
     STLAnalyser.analyseSTL(slicingParam)
         .then(information => {
             logger.log({
@@ -114,6 +117,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
             });
             res.send(err)
         });
+
+     */
+    res.json(slicingParam);
 });
 
 app.listen(3000)
