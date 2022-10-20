@@ -12,7 +12,6 @@ function formatReqSlicingParam(reqBody) {
     let potentialErrors = [];
     let availableParam;
 
-    //TODO verification of body data to fit with available parameter
     try {
         const jsonString = fs.readFileSync("./data.json");
         availableParam = JSON.parse(jsonString.toString());
@@ -40,17 +39,18 @@ function formatReqSlicingParam(reqBody) {
     } else {
         slicingParam.printSettings = '';
     }
-
+    if(reqBody.fillDensity < 0 || reqBody.fillDensity > 100){
+        potentialErrors[3] = 1
+    }
     //check if any of last verification test failed and throw an exception if there is
     if (potentialErrors[0] === 1 || potentialErrors[1] === 1 || potentialErrors[2] === 1) {
         throw "Some given data doesn't fit with available parameter"
     } else {
-
         // init all slicing param values to be equal of the values in the body request, or if they aren't specified, add default values
         slicingParam.printSettings = reqBody.printSettings;
         slicingParam.printerType = reqBody.printerType;
         slicingParam.filamentType = reqBody.filamentType;
-        slicingParam.fillDensity = typeof reqBody.fillDensity == 'undefined' ? slicingParam.fillDensity = '' : slicingParam.fillDensity = reqBody.fillDensity;
+        slicingParam.fillDensity = reqBody.fillDensity;
         slicingParam.scalePercent = typeof reqBody.scalePercent == 'undefined' ? slicingParam.scalePercent = '' : slicingParam.scalePercent = reqBody.scalePercent;
         slicingParam.xScale = typeof reqBody.xScale == 'undefined' ? slicingParam.xScale = '' : slicingParam.xScale = reqBody.xScale;
         slicingParam.yScale = typeof reqBody.yScale == 'undefined' ? slicingParam.yScale = '' : slicingParam.yScale = reqBody.yScale;
