@@ -2,14 +2,12 @@ const express = require('express')
 const app = express()
 const {format, createLogger, transports} = require('winston');
 const {combine, timestamp, printf} = format;
-const STLAnalyser = require('./stl-analyser/index');
+// const STLAnalyser = require('./stl-analyser/index');
 const Utils = require('./utils/format-data');
 const multer = require('multer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
-
-
 
 // init directory where file will be stored
 const storage = multer.diskStorage(
@@ -21,6 +19,7 @@ const storage = multer.diskStorage(
     }
 );
 const upload = multer({storage: storage});
+
 
 
 // init logger
@@ -45,9 +44,10 @@ const logger = createLogger({
 })
 
 
+
+
 // all request pass through this "middleware"
 app.use(cors());
-
 app.use((req, res, next) => {
     logger.log({
         level: 'info',
@@ -56,8 +56,12 @@ app.use((req, res, next) => {
     next();
 })
 
+
+
 //Encode URL to be readable
 app.use(bodyParser.urlencoded({extended: true}));
+
+
 
 
 app.get('/test', function (req, res) {
@@ -78,12 +82,16 @@ app.get('/api/admin/print-settings/', function (req,res){
 
 
 // this endpoint provide information about stl after slicing wth given param
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', upload.single('file'), (req, res) => {
     let slicingParam = {};
+    let error = 0;
+
+    /*
     // verify if there is a file in the request and if the file has the right format
     if (typeof req.file == 'undefined') {
         return res.json(`Please send a file with your request`);
     }
+    */
 
     /*
     if(req.file.mimetype != 'application/octet-stream') {
@@ -96,9 +104,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
     //init Data with slicing parameter given in the body of the request
     try {
         slicingParam = Utils.formatReqSlicingPram(req.body);
-        slicingParam.fileName = req.file.originalname.split('.stl')[0];
+        //slicingParam.fileName = req.file.originalname.split('.stl')[0];
     }catch (err){
-        res.send(err);
+        error = err;
     }
 
     /*
@@ -119,7 +127,11 @@ app.post('/upload', upload.single('file'), (req, res) => {
         });
 
      */
-    res.json(slicingParam);
+    if(error === 0){
+        return res.json(slicingParam);
+    }else{
+        return res.json(error);
+    }
 });
 
 app.listen(3000)
